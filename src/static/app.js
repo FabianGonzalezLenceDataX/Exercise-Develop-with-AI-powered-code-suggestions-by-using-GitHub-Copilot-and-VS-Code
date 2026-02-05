@@ -1,10 +1,72 @@
+/**
+ * University of La Laguna
+ * School of Engineering and Technology
+ * Degree in Computer Engineering
+ * External Internships (PE)
+ *
+ * @author Fabián González Lence <fabian.gonzalez@datax.world>
+ * @since 2026-02-05
+ * @file app.js
+ * @desc Client-side JavaScript for Mergington High School Activities management system.
+ *       Handles fetching activities from the API, displaying them in the UI,
+ *       managing activity signups, and handling participant unregistration.
+ * @see {@link https://github.com/FabianGonzalezLenceDataX/Exercise-Develop-with-AI-powered-code-suggestions-by-using-GitHub-Copilot-and-VS-Code}
+ */
+
+// Constants
+const MESSAGE_HIDE_TIMEOUT = 5000;
+const ERROR_LOAD_ACTIVITIES = "Failed to load activities. Please try again later.";
+const ERROR_UNREGISTER_FAILED = "Failed to unregister. Please try again.";
+const ERROR_SIGNUP_FAILED = "Failed to sign up. Please try again.";
+const ERROR_GENERIC = "An error occurred";
+
 document.addEventListener("DOMContentLoaded", () => {
   const activitiesList = document.getElementById("activities-list");
   const activitySelect = document.getElementById("activity");
   const signupForm = document.getElementById("signup-form");
   const messageDiv = document.getElementById("message");
 
-  // Function to fetch activities from API
+  /**
+   * Display a message to the user with auto-hide functionality.
+   * 
+   * Shows a success or error message in the message div and automatically
+   * hides it after a specified timeout.
+   * 
+   * @function displayMessage
+   * @param {string} message - The message text to display
+   * @param {string} type - The message type: "success" or "error"
+   * @param {number} [hideAfter=MESSAGE_HIDE_TIMEOUT] - Milliseconds before hiding (default: 5000)
+   * 
+   * @example
+   * displayMessage("Signup successful!", "success");
+   * displayMessage("An error occurred", "error");
+   */
+  function displayMessage(message, type, hideAfter = MESSAGE_HIDE_TIMEOUT) {
+    messageDiv.textContent = message;
+    messageDiv.className = type;
+    messageDiv.classList.remove("hidden");
+
+    setTimeout(() => {
+      messageDiv.classList.add("hidden");
+    }, hideAfter);
+  }
+
+  /**
+   * Fetches all activities from the API and updates the UI.
+   * 
+   * Retrieves the list of extracurricular activities from the backend API,
+   * populates activity cards with details, and fills the signup dropdown menu.
+   * Automatically displays participant lists with delete buttons for each.
+   * 
+   * @async
+   * @function fetchActivities
+   * @returns {Promise<void>} Resolves when activities are fetched and UI is updated
+   * @throws {Error} Logs error to console if API fetch fails
+   * 
+   * @example
+   * // Called automatically on page load and after signup/unregister
+   * await fetchActivities();
+   */
   async function fetchActivities() {
     try {
       const response = await fetch("/activities");
@@ -70,12 +132,27 @@ document.addEventListener("DOMContentLoaded", () => {
         activitySelect.appendChild(option);
       });
     } catch (error) {
-      activitiesList.innerHTML = "<p>Failed to load activities. Please try again later.</p>";
+      activitiesList.innerHTML = `<p>${ERROR_LOAD_ACTIVITIES}</p>`;
       console.error("Error fetching activities:", error);
     }
   }
 
-  // Handle delete button clicks with event delegation
+  /**
+   * Handles unregistering participants from activities using event delegation.
+   * 
+   * Listens for clicks on delete buttons within the activities list.
+   * Prompts for confirmation before unregistering a student from an activity.
+   * Updates the UI and displays success/error messages after the operation.
+   * 
+   * @event click
+   * @async
+   * @param {MouseEvent} event - The click event from the activities list
+   * @returns {Promise<void>} Resolves when unregistration is complete
+   * 
+   * @example
+   * // Automatically handles clicks on delete buttons in participant lists
+   * // User confirms: "Are you sure you want to unregister user@email.com from Chess Club?"
+   */
   activitiesList.addEventListener("click", async (event) => {
     const deleteBtn = event.target.closest(".delete-btn");
     if (!deleteBtn) return;
@@ -98,30 +175,34 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json();
 
       if (response.ok) {
-        messageDiv.textContent = result.message;
-        messageDiv.className = "success";
+        displayMessage(result.message, "success");
         // Refresh activities list
         await fetchActivities();
       } else {
-        messageDiv.textContent = result.detail || "An error occurred";
-        messageDiv.className = "error";
+        displayMessage(result.detail || ERROR_GENERIC, "error");
       }
-
-      messageDiv.classList.remove("hidden");
-
-      // Hide message after 5 seconds
-      setTimeout(() => {
-        messageDiv.classList.add("hidden");
-      }, 5000);
     } catch (error) {
-      messageDiv.textContent = "Failed to unregister. Please try again.";
-      messageDiv.className = "error";
-      messageDiv.classList.remove("hidden");
+      displayMessage(ERROR_UNREGISTER_FAILED, "error");
       console.error("Error unregistering:", error);
     }
   });
 
-  // Handle form submission
+  /**
+   * Handles the activity signup form submission.
+   * 
+   * Processes student registration for extracurricular activities.
+   * Validates form input, sends signup request to API, displays result messages,
+   * and refreshes the activities list upon successful registration.
+   * 
+   * @event submit
+   * @async
+   * @param {Event} event - The form submission event
+   * @returns {Promise<void>} Resolves when signup is complete
+   * 
+   * @example
+   * // User fills form with email "student@mergington.edu" and selects "Chess Club"
+   * // Form submits and displays: "Signed up student@mergington.edu for Chess Club"
+   */
   signupForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
@@ -139,30 +220,22 @@ document.addEventListener("DOMContentLoaded", () => {
       const result = await response.json();
 
       if (response.ok) {
-        messageDiv.textContent = result.message;
-        messageDiv.className = "success";
+        displayMessage(result.message, "success");
         signupForm.reset();
         // Refresh activities list
         await fetchActivities();
       } else {
-        messageDiv.textContent = result.detail || "An error occurred";
-        messageDiv.className = "error";
+        displayMessage(result.detail || ERROR_GENERIC, "error");
       }
-
-      messageDiv.classList.remove("hidden");
-
-      // Hide message after 5 seconds
-      setTimeout(() => {
-        messageDiv.classList.add("hidden");
-      }, 5000);
     } catch (error) {
-      messageDiv.textContent = "Failed to sign up. Please try again.";
-      messageDiv.className = "error";
-      messageDiv.classList.remove("hidden");
+      displayMessage(ERROR_SIGNUP_FAILED, "error");
       console.error("Error signing up:", error);
     }
   });
 
-  // Initialize app
+  /**
+   * Initialize the application by fetching and displaying activities.
+   * Called automatically when the DOM content is fully loaded.
+   */
   fetchActivities();
 });

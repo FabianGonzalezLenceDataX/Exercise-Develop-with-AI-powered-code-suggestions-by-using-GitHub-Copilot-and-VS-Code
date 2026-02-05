@@ -1,0 +1,43 @@
+{
+  "name": "mergington-high-school-api",
+  "version": "1.0.0",
+  "description": "High School Management System - Extracurricular Activities API",
+  "scripts": {
+    "test": "npm run test:python && npm run test:js",
+    "test:python": "cd .. && python -m pytest tests/ -v --tb=short",
+    "test:js": "jest",
+    "test:coverage": "npm run test:coverage:python && npm run test:coverage:js",
+    "test:coverage:python": "python -m pytest tests/ --cov=. --cov-report=term --cov-report=html:coverage/python",
+    "test:coverage:js": "jest --coverage",
+    "test:watch": "jest --watch",
+    "lint:js": "eslint src/static/*.js"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "collectCoverageFrom": [
+      "src/static/**/*.js"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "testMatch": [
+      "**/tests/**/*.test.js"
+    ],
+    "coverageDirectory": "coverage/javascript",
+    "setupFilesAfterEnv": ["<rootDir>/tests/setup.js"]
+  },
+  "devDependencies": {
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.5.0",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "keywords": [
+    "education",
+    "activities",
+    "fastapi",
+    "school-management"
+  ],
+  "author": "Fabián González Lence",
+  "license": "MIT"
+}
